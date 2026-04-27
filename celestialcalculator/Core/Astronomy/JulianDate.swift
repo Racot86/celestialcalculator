@@ -1,6 +1,6 @@
 import Foundation
 
-enum JulianDate {
+nonisolated enum JulianDate {
     static let j2000: Double = 2451545.0
 
     static func julianDay(from date: Date) -> Double {

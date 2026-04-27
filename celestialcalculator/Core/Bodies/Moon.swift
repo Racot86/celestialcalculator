@@ -2,7 +2,7 @@ import Foundation
 
 /// Moon position via Meeus chapter 47 — geocentric apparent (truncated to leading terms).
 /// Accuracy ~0.05° in longitude — adequate for navigational azimuth at typical use.
-struct Moon: CelestialBody {
+nonisolated struct Moon: CelestialBody {
     func apparentEquatorial(jdUT: Double) -> EquatorialCoordinates {
         let jde = JulianDate.jde(from: jdUT)
         let t = JulianDate.centuriesSinceJ2000(jd: jde)

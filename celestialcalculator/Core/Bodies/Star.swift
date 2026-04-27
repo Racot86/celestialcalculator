@@ -2,7 +2,7 @@ import Foundation
 
 /// Catalog star → apparent equatorial of date.
 /// Steps: J2000 catalog → proper motion to epoch → IAU precession → nutation → annual aberration.
-struct Star: CelestialBody {
+nonisolated struct Star: CelestialBody {
     let catalogIndex: Int
 
     func apparentEquatorial(jdUT: Double) -> EquatorialCoordinates {

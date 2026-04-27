@@ -1,6 +1,6 @@
 import Foundation
 
-enum Obliquity {
+nonisolated enum Obliquity {
     /// Mean obliquity of the ecliptic in radians (Meeus 22.2 / IAU 1980).
     static func meanObliquity(jde: Double) -> Double {
         let t = JulianDate.centuriesSinceJ2000(jd: jde)

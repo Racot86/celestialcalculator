@@ -12,7 +12,7 @@ struct BodyDiagnosticsView: View {
         return BrutalistPanel(serial: String(format: "JD %.5f", q.jdUT),
                               title: "Almanac Data",
                               subtitle: "USNO COMPARE • \(bodyID.symbol) \(bodyID.displayName.uppercased())") {
-            ScrollView {
+            BrutalistScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     group(title: "TIME") {
                         row("Julian Day (UT)", String(format: "%.6f", q.jdUT))

@@ -2,7 +2,7 @@ import Foundation
 
 /// All four navigational planets via the full VSOP87D heliocentric series
 /// (ecliptic-of-date, no precession bookkeeping needed).
-struct Planet: CelestialBody {
+nonisolated struct Planet: CelestialBody {
     let kind: PlanetKind
 
     func apparentEquatorial(jdUT: Double) -> EquatorialCoordinates {

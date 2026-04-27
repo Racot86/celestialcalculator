@@ -1,6 +1,6 @@
 import Foundation
 
-enum HorizontalTransform {
+nonisolated enum HorizontalTransform {
     /// Convert apparent equatorial → topocentric horizontal.
     /// Azimuth measured from true North, eastward (navigational convention), 0–2π.
     static func horizontal(from eq: EquatorialCoordinates,

@@ -3,7 +3,10 @@ import Foundation
 /// Builds a published-style almanac page for a UT date.
 /// All output is **observer-independent** — the only inputs are the date and the
 /// fixed standard-latitude rows used by the classical Nautical Almanac.
-enum AlmanacGenerator {
+///
+/// Marked `nonisolated` so the entire generator is callable from a detached
+/// background `Task` without crossing main-actor boundaries.
+nonisolated enum AlmanacGenerator {
     private static let utc = TimeZone(identifier: "UTC")!
 
     /// Standard latitude rows used by the printed almanac for the rise/set/twilight

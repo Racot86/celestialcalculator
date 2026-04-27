@@ -29,7 +29,7 @@ struct CompareView: View {
                     Text(err).font(.brutalistMono(10)).foregroundStyle(BrutalistTheme.signal)
                 }
 
-                ScrollView {
+                BrutalistScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.rows) { row in
                             CompareRowView(row: row)

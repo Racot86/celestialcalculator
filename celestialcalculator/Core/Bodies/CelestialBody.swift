@@ -1,11 +1,11 @@
 import Foundation
 
-protocol CelestialBody {
+nonisolated protocol CelestialBody {
     /// Apparent geocentric (or topocentric, for Moon) equatorial coordinates of date.
     func apparentEquatorial(jdUT: Double) -> EquatorialCoordinates
 }
 
-extension CelestialBody {
+nonisolated extension CelestialBody {
     func horizontalCoordinates(for observer: Observer) -> HorizontalCoordinates {
         let jdUT = JulianDate.julianDay(from: observer.date)
         let eq = apparentEquatorial(jdUT: jdUT)
@@ -18,7 +18,7 @@ extension CelestialBody {
     }
 }
 
-enum BodyFactory {
+nonisolated enum BodyFactory {
     static func body(for id: CelestialBodyID) -> CelestialBody {
         switch id {
         case .sun: return Sun()

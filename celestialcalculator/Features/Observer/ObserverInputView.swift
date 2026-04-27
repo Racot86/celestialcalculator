@@ -10,7 +10,7 @@ struct ObserverInputView: View {
         BrutalistPanel(serial: serial,
                        title: "Observer",
                        subtitle: "POSITION • EPOCH") {
-            ScrollView {
+            BrutalistScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     section(title: "DATE  (UTC)") {
                         tappableRow(text: dateDisplay) { editingDate = true }

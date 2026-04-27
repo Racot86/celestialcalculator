@@ -2,7 +2,7 @@ import Foundation
 
 /// Evaluator for VSOP87D heliocentric ecliptic-of-date series.
 /// Returns (lon, lat, r) in radians, radians, AU.
-enum VSOP87Engine {
+nonisolated enum VSOP87Engine {
     static func evaluate(L: [[VSOPTerm]],
                          B: [[VSOPTerm]],
                          R: [[VSOPTerm]],
@@ -30,7 +30,7 @@ enum VSOP87Engine {
     }
 }
 
-enum VSOP87Body {
+nonisolated enum VSOP87Body {
     static func earth(jde: Double) -> (lon: Double, lat: Double, r: Double) {
         VSOP87Engine.evaluate(
             L: [VSOP87.earth_L0, VSOP87.earth_L1, VSOP87.earth_L2,
@@ -83,7 +83,7 @@ enum VSOP87Body {
     }
 }
 
-func vsopSphericalToRect(_ p: (lon: Double, lat: Double, r: Double)) -> (x: Double, y: Double, z: Double) {
+nonisolated func vsopSphericalToRect(_ p: (lon: Double, lat: Double, r: Double)) -> (x: Double, y: Double, z: Double) {
     let cb = cos(p.lat)
     return (p.r * cb * cos(p.lon),
             p.r * cb * sin(p.lon),

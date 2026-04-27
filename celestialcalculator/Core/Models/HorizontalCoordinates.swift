@@ -1,6 +1,6 @@
 import Foundation
 
-struct HorizontalCoordinates: Equatable {
+nonisolated struct HorizontalCoordinates: Equatable {
     var azimuth: Double
     var altitude: Double
 

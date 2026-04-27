@@ -12,7 +12,7 @@ struct BodiesListView: View {
                 BrutalistToggle(isOn: $viewModel.hideBelowHorizon,
                                 label: "Hide below horizon")
 
-                ScrollView {
+                BrutalistScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.rows) { row in
                             NavigationLink(value: row.bodyID) {

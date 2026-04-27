@@ -1,6 +1,6 @@
 import Foundation
 
-enum Refraction {
+nonisolated enum Refraction {
     /// Bennett's formula. Input/output altitudes in radians.
     /// Returns refraction-corrected (apparent) altitude.
     static func apparentAltitude(trueAltitudeRad: Double,

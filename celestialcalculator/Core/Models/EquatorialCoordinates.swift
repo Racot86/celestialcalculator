@@ -1,6 +1,6 @@
 import Foundation
 
-struct EquatorialCoordinates: Equatable {
+nonisolated struct EquatorialCoordinates: Equatable {
     var rightAscension: Double
     var declination: Double
     var distanceAU: Double?

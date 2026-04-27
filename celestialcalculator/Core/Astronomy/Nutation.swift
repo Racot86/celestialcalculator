@@ -2,7 +2,7 @@ import Foundation
 
 /// Truncated IAU 1980 nutation series — leading terms only (Meeus 22).
 /// Accuracy ~1″ for navigation purposes; sufficient given our other approximations.
-enum Nutation {
+nonisolated enum Nutation {
     /// (Δψ, Δε) in radians.
     static func nutation(jde: Double) -> (deltaPsi: Double, deltaEpsilon: Double) {
         let t = JulianDate.centuriesSinceJ2000(jd: jde)

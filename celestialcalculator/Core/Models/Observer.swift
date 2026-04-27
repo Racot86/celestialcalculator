@@ -1,6 +1,6 @@
 import Foundation
 
-struct Observer: Equatable, Hashable {
+nonisolated struct Observer: Equatable, Hashable {
     var date: Date
     var latitude: Double
     var longitude: Double

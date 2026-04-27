@@ -1,7 +1,7 @@
 import Foundation
 
 /// Annual aberration corrections — Meeus chapter 23.
-enum Aberration {
+nonisolated enum Aberration {
     /// Apply annual aberration to ecliptic coordinates of a Solar-System body.
     /// Returns (Δλ, Δβ) in radians. Adds ~20.5″ along the apex-of-Earth's-motion.
     static func annualEclipticCorrection(longitudeRad lambda: Double,

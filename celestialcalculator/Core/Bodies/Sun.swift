@@ -3,7 +3,7 @@ import Foundation
 /// Apparent geocentric position of the Sun derived from VSOP87D Earth heliocentric.
 /// Geocentric Sun longitude = Earth heliocentric longitude + 180°.
 /// Includes light-time aberration and nutation in longitude.
-struct Sun: CelestialBody {
+nonisolated struct Sun: CelestialBody {
     func apparentEquatorial(jdUT: Double) -> EquatorialCoordinates {
         let jde = JulianDate.jde(from: jdUT)
 

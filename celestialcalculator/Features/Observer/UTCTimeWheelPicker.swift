@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// HH/MM/SS UTC time picker — just three Pickers in `.wheel` style.
+/// UTC time picker (HH/MM/SS) built from the custom SwiftUI `BrutalistWheel`.
 struct UTCTimeWheelPicker: View {
     @Binding var date: Date
 
@@ -10,22 +10,15 @@ struct UTCTimeWheelPicker: View {
     @State private var minute: Int = 0
     @State private var second: Int = 0
 
-    private let wheelHeight: CGFloat = 130
-
     var body: some View {
-        HStack(spacing: 0) {
-            wheel(label: "HH", selection: $hour,   range: 0...23)
+        HStack(spacing: 6) {
+            column(label: "HH", items: items(0...23), binding: $hour)
             colon
-            wheel(label: "MM", selection: $minute, range: 0...59)
+            column(label: "MM", items: items(0...59), binding: $minute)
             colon
-            wheel(label: "SS", selection: $second, range: 0...59)
-            Spacer(minLength: 0)
-            Text("UTC")
-                .font(.brutalistText(10))
-                .foregroundStyle(BrutalistTheme.muted)
-                .padding(.trailing, 6)
+            column(label: "SS", items: items(0...59), binding: $second)
         }
-        .frame(height: wheelHeight + 18)
+        .frame(maxWidth: .infinity)
         .onAppear { syncFromDate() }
         .onChange(of: date)   { _, _ in syncFromDate() }
         .onChange(of: hour)   { _, _ in pushToDate() }
@@ -33,29 +26,25 @@ struct UTCTimeWheelPicker: View {
         .onChange(of: second) { _, _ in pushToDate() }
     }
 
+    private func items(_ range: ClosedRange<Int>) -> [BrutalistWheel<Int>.Item] {
+        range.map { .init(tag: $0, title: String(format: "%02d", $0)) }
+    }
+
     private var colon: some View {
         Text(":")
             .font(.brutalistMonoBold(20))
             .foregroundStyle(BrutalistTheme.accent)
-            .frame(width: 10, height: wheelHeight + 18)
-            .padding(.top, 6)
+            .frame(width: 12)
+            .padding(.top, 18) // visual alignment with the wheels (label height + spacing)
     }
 
-    private func wheel(label: String, selection: Binding<Int>, range: ClosedRange<Int>) -> some View {
-        VStack(spacing: 2) {
+    private func column(label: String,
+                        items: [BrutalistWheel<Int>.Item],
+                        binding: Binding<Int>) -> some View {
+        VStack(spacing: 4) {
             Text(label).font(.brutalistTextBold(8))
                 .foregroundStyle(BrutalistTheme.muted)
-            Picker(label, selection: selection) {
-                ForEach(Array(range), id: \.self) { v in
-                    Text(String(format: "%02d", v))
-                        .font(.brutalistMonoBold(17))
-                        .foregroundStyle(BrutalistTheme.foreground)
-                        .tag(v)
-                }
-            }
-            .pickerStyle(.wheel)
-            .frame(width: 64, height: wheelHeight)
-            .clipped()
+            BrutalistWheel(selection: binding, items: items, width: 60)
         }
     }
 

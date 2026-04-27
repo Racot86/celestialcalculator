@@ -1,8 +1,8 @@
 import Foundation
 
-struct VSOPTerm { let a,b,c: Double; init(_ a: Double,_ b: Double,_ c: Double){self.a=a;self.b=b;self.c=c}}
+nonisolated struct VSOPTerm { let a,b,c: Double; init(_ a: Double,_ b: Double,_ c: Double){self.a=a;self.b=b;self.c=c}}
 
-enum VSOP87 {
+nonisolated enum VSOP87 {
     // MARK: - Earth
     static let earth_L0: [VSOPTerm] = [
         VSOPTerm(1.75347045673,0.00000000000,0.00000000000),

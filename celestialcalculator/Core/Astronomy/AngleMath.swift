@@ -1,6 +1,6 @@
 import Foundation
 
-enum AngleMath {
+nonisolated enum AngleMath {
     static func degToRad(_ d: Double) -> Double { d * .pi / 180.0 }
     static func radToDeg(_ r: Double) -> Double { r * 180.0 / .pi }
 

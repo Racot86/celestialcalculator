@@ -9,11 +9,10 @@ enum CoordinateAxis {
     var degreeWidth: Int { self == .latitude ? 2 : 3 }
 }
 
-/// Single-gesture-per-component picker. Each wheel moves with one swipe.
-/// Format: DD-MM.M' N/S  /  DDD-MM.M' E/W
+/// Coordinate picker — uses the custom-SwiftUI `BrutalistWheel`.
+/// Format: DD°MM.M' N/S  /  DDD°MM.M' E/W
 struct CoordinateWheelPicker: View {
     let axis: CoordinateAxis
-    /// Signed value in decimal degrees. North/East positive.
     @Binding var value: Double
 
     @State private var deg: Int = 0
@@ -21,75 +20,66 @@ struct CoordinateWheelPicker: View {
     @State private var tenth: Int = 0
     @State private var positive: Bool = true
 
-    private let wheelHeight: CGFloat = 110
-
     var body: some View {
-        HStack(spacing: 0) {
-            wheel(label: "DEG",
-                  selection: $deg,
-                  range: 0...axis.maxDegrees,
-                  format: "%0\(axis.degreeWidth)d°")
-            wheel(label: "MIN",
-                  selection: $min,
-                  range: 0...59,
-                  format: "%02d")
-            wheel(label: "TENTHS",
-                  selection: $tenth,
-                  range: 0...9,
-                  format: ".%d'")
-            hemisphereWheel
+        // The HStack hugs the wheels and is centred by its parent — no Spacer
+        // splits the row, no gap between label and wheels.
+        HStack(spacing: 6) {
+            column(label: "DEG",
+                   binding: $deg,
+                   items: degItems,
+                   width: axis == .latitude ? 70 : 80)
+            column(label: "MIN",
+                   binding: $min,
+                   items: minItems,
+                   width: 60)
+            column(label: "TENTHS",
+                   binding: $tenth,
+                   items: tenthItems,
+                   width: 64)
+            column(label: "HEM",
+                   binding: $positive,
+                   items: hemItems,
+                   width: 56)
         }
-        .frame(height: wheelHeight + 18)
+        .frame(maxWidth: .infinity)
         .onAppear { syncFromValue() }
-        .onChange(of: value) { _, _ in syncFromValue() }
+        .onChange(of: value)    { _, _ in syncFromValue() }
         .onChange(of: deg)      { _, _ in pushToValue() }
         .onChange(of: min)      { _, _ in pushToValue() }
         .onChange(of: tenth)    { _, _ in pushToValue() }
         .onChange(of: positive) { _, _ in pushToValue() }
     }
 
-    private func wheel(label: String,
-                       selection: Binding<Int>,
-                       range: ClosedRange<Int>,
-                       format: String) -> some View {
-        VStack(spacing: 2) {
+    private func column<Tag: Hashable>(label: String,
+                                       binding: Binding<Tag>,
+                                       items: [BrutalistWheel<Tag>.Item],
+                                       width: CGFloat) -> some View {
+        VStack(spacing: 4) {
             Text(label)
-                .font(.brutalistMono(8))
+                .font(.brutalistTextBold(8))
                 .foregroundStyle(BrutalistTheme.muted)
-            Picker(label, selection: selection) {
-                ForEach(Array(range), id: \.self) { v in
-                    Text(String(format: format, v))
-                        .font(.brutalistMonoBold(17))
-                        .foregroundStyle(BrutalistTheme.foreground)
-                        .tag(v)
-                }
-            }
-            .pickerStyle(.wheel)
-            .frame(height: wheelHeight)
-            .clipped()
+            BrutalistWheel(selection: binding, items: items, width: width)
         }
     }
 
-    private var hemisphereWheel: some View {
-        VStack(spacing: 2) {
-            Text("HEM")
-                .font(.brutalistMono(8))
-                .foregroundStyle(BrutalistTheme.muted)
-            Picker("Hemisphere", selection: $positive) {
-                Text(axis.positiveHemisphere)
-                    .font(.brutalistMonoBold(17))
-                    .foregroundStyle(BrutalistTheme.accent)
-                    .tag(true)
-                Text(axis.negativeHemisphere)
-                    .font(.brutalistMonoBold(17))
-                    .foregroundStyle(BrutalistTheme.accent)
-                    .tag(false)
-            }
-            .pickerStyle(.wheel)
-            .frame(height: wheelHeight)
-            .clipped()
-        }
+    // MARK: - Item providers
+
+    private var degItems: [BrutalistWheel<Int>.Item] {
+        let fmt = "%0\(axis.degreeWidth)d°"
+        return (0...axis.maxDegrees).map { .init(tag: $0, title: String(format: fmt, $0)) }
     }
+    private var minItems: [BrutalistWheel<Int>.Item] {
+        (0...59).map { .init(tag: $0, title: String(format: "%02d", $0)) }
+    }
+    private var tenthItems: [BrutalistWheel<Int>.Item] {
+        (0...9).map { .init(tag: $0, title: String(format: ".%d'", $0)) }
+    }
+    private var hemItems: [BrutalistWheel<Bool>.Item] {
+        [.init(tag: true,  title: axis.positiveHemisphere),
+         .init(tag: false, title: axis.negativeHemisphere)]
+    }
+
+    // MARK: - Value sync
 
     private func syncFromValue() {
         let absValue = abs(value)
@@ -102,17 +92,15 @@ struct CoordinateWheelPicker: View {
         let fixedD = Swift.min(d + carryD, axis.maxDegrees)
 
         if deg != fixedD { deg = fixedD }
-        if min != fixedM { min = fixedM }
+        if self.min != fixedM { self.min = fixedM }
         if tenth != fixedT { tenth = fixedT }
         let pos = value >= 0
         if positive != pos { positive = pos }
     }
 
     private func pushToValue() {
-        let mag = Double(deg) + Double(min)/60.0 + Double(tenth)/600.0
+        let mag = Double(deg) + Double(min) / 60.0 + Double(tenth) / 600.0
         let signed = positive ? mag : -mag
-        if abs(signed - value) > 1e-9 {
-            value = signed
-        }
+        if abs(signed - value) > 1e-9 { value = signed }
     }
 }

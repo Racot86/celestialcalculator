@@ -1,6 +1,6 @@
 import Foundation
 
-enum SiderealTime {
+nonisolated enum SiderealTime {
     /// Greenwich Mean Sidereal Time in radians (Meeus 12.4).
     static func gmst(jdUT: Double) -> Double {
         let t = JulianDate.centuriesSinceJ2000(jd: jdUT)

@@ -37,7 +37,7 @@ struct AlmanacView: View {
 
     @ViewBuilder
     private func dayContent(_ day: AlmanacDay) -> some View {
-        ScrollView {
+        BrutalistScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 sectionTitle("HOURLY EPHEMERIS  (Aries · Sun · Planets · Moon)")
                 AlmanacHourlyTableView(hours: day.hours)

@@ -3,7 +3,7 @@ import Foundation
 /// IAU 2006 precession (Capitaine, Wallace, Chapront 2003). Ecliptic-rotation
 /// formulation using ζ_A, z_A, θ_A in arcseconds (T = TDB centuries from J2000).
 /// Replaces IAU 1976. Inputs and outputs in radians.
-enum Precession {
+nonisolated enum Precession {
     static func precessJ2000ToDate(raRad alpha0: Double, decRad delta0: Double, jde: Double) -> (Double, Double) {
         let t = JulianDate.centuriesSinceJ2000(jd: jde)
         // Coefficients in arcseconds (Capitaine et al. 2003, IAU 2006)

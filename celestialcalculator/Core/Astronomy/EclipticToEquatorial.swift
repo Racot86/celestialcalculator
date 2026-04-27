@@ -1,6 +1,6 @@
 import Foundation
 
-enum EclipticToEquatorial {
+nonisolated enum EclipticToEquatorial {
     /// (lambda, beta) in radians, ε in radians → (RA, Dec) in radians.
     static func convert(longitudeRad lambda: Double,
                         latitudeRad beta: Double,

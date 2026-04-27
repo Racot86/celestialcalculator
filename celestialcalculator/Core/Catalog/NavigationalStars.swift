@@ -1,6 +1,6 @@
 import Foundation
 
-struct NavigationalStarEntry: Sendable {
+nonisolated struct NavigationalStarEntry: Sendable {
     let name: String
     let bayer: String
     let magnitude: Double
@@ -19,7 +19,7 @@ struct NavigationalStarEntry: Sendable {
 /// The 57 navigational stars (Bowditch / Nautical Almanac) plus Polaris.
 /// Astrometry from the Hipparcos new reduction (van Leeuwen 2007, VizieR I/311),
 /// propagated from epoch J1991.25 to J2000.0 using the catalog's proper motions.
-enum NavigationalStars {
+nonisolated enum NavigationalStars {
     nonisolated static let all: [NavigationalStarEntry] = [
         .init(name: "Acamar", bayer: "θ Eri", magnitude: 2.88, raJ2000Deg: 44.5653135525, decJ2000Deg: -40.3046812264, pmRAArcsecPerYear: -0.052890, pmDecArcsecPerYear: 0.021980, parallaxArcsec: 0.0202300),
         .init(name: "Achernar", bayer: "α Eri", magnitude: 0.45, raJ2000Deg: 24.4285228227, decJ2000Deg: -57.2367527944, pmRAArcsecPerYear: 0.087000, pmDecArcsecPerYear: -0.038240, parallaxArcsec: 0.0233900),

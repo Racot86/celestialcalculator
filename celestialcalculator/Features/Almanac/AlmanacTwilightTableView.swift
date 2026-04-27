@@ -6,7 +6,7 @@ struct AlmanacTwilightTableView: View {
     let rows: [LatitudeTwilightRow]
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: true) {
+        ScrollView(.horizontal, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 header
                 Rectangle().fill(BrutalistTheme.foreground.opacity(0.4)).frame(height: 1)

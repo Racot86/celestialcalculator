@@ -3,7 +3,7 @@ import Foundation
 /// Standard navigational-almanac quantities for a body at a given instant + place.
 /// Mirrors the columns shown by USNO's celestial-navigation table at
 /// https://aa.usno.navy.mil/data/celnavtable so values can be cross-checked offline.
-struct AlmanacQuantities {
+nonisolated struct AlmanacQuantities {
     /// Universal Time (UT1) Julian Day used for the calculation.
     let jdUT: Double
     /// Apparent geocentric (or topocentric, for Moon) equatorial coordinates of date.
@@ -30,7 +30,7 @@ struct AlmanacQuantities {
     let shaDegrees: Double
 }
 
-enum AlmanacCalculator {
+nonisolated enum AlmanacCalculator {
     static func compute(bodyID: CelestialBodyID, observer: Observer) -> AlmanacQuantities {
         let body = BodyFactory.body(for: bodyID)
         let jd = JulianDate.julianDay(from: observer.date)

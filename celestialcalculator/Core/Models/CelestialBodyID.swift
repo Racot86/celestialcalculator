@@ -1,6 +1,6 @@
 import Foundation
 
-enum CelestialBodyID: Hashable, Identifiable {
+nonisolated enum CelestialBodyID: Hashable, Identifiable {
     case sun
     case moon
     case planet(PlanetKind)
@@ -60,7 +60,7 @@ enum CelestialBodyID: Hashable, Identifiable {
     }
 }
 
-enum PlanetKind: String, CaseIterable {
+nonisolated enum PlanetKind: String, CaseIterable {
     case venus, mars, jupiter, saturn
 
     var displayName: String { rawValue.capitalized }

@@ -9,7 +9,7 @@ struct BodyDetailView: View {
         BrutalistPanel(serial: serial(q),
                        title: viewModel.bodyID.displayWithSymbol,
                        subtitle: "\(viewModel.bodyID.classification) • TRUE BEARING (Zn)") {
-            ScrollView {
+            BrutalistScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     backStrip
                     TimeStrip(date: viewModel.observerStore.observer.date)
