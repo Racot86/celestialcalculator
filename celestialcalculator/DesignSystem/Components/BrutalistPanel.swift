@@ -23,17 +23,27 @@ struct BrutalistPanel<Content: View>: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
                 content()
-                Spacer(minLength: 0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 BarcodeStripe(color: BrutalistTheme.foreground,
                               seed: UInt64(abs(serial.hashValue)))
-                    .padding(.bottom, 8)
             }
             .padding(.horizontal, 18)
             .padding(.top, 18)
+            .padding(.bottom, 6)
 
             CornerRegistrationMarks(color: BrutalistTheme.foreground)
         }
         .foregroundStyle(BrutalistTheme.foreground)
+    }
+
+    /// Split "JD 2461158.1699" into ("JD", "2461158.1699") for two-typeface display.
+    private var serialPrefix: String {
+        guard let i = serial.firstIndex(of: " ") else { return "" }
+        return String(serial[..<i])
+    }
+    private var serialValue: String {
+        guard let i = serial.firstIndex(of: " ") else { return serial }
+        return String(serial[serial.index(after: i)...])
     }
 
     private var header: some View {
@@ -42,17 +52,26 @@ struct BrutalistPanel<Content: View>: View {
                 Text(title.uppercased())
                     .font(.brutalistLabel(20))
                     .foregroundStyle(BrutalistTheme.foreground)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
                 if let subtitle {
                     Text(subtitle.uppercased())
-                        .font(.brutalistMono(11))
+                        .font(.brutalistDecorative(13))
                         .foregroundStyle(BrutalistTheme.muted)
                 }
             }
             Spacer()
-            Text(serial)
-                .font(.brutalistMonoBold(11))
-                .foregroundStyle(BrutalistTheme.accent)
-                .padding(.top, 4)
+            // Decorative JD chip — both prefix and value rendered in Bitcount,
+            // since the panel header serial is decoration, not a value to read.
+            HStack(spacing: 6) {
+                Text(serialPrefix)
+                    .font(.brutalistDecorative(13))
+                    .foregroundStyle(BrutalistTheme.muted)
+                Text(serialValue)
+                    .font(.brutalistDecorative(15))
+                    .foregroundStyle(BrutalistTheme.accent)
+            }
+            .padding(.top, 4)
         }
     }
 }

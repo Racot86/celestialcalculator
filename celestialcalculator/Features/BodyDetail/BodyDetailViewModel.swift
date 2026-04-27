@@ -11,12 +11,9 @@ final class BodyDetailViewModel {
         self.observerStore = observerStore
     }
 
-    var horizontal: HorizontalCoordinates {
-        BodyFactory.body(for: bodyID).horizontalCoordinates(for: observerStore.observer)
-    }
-
-    var equatorial: EquatorialCoordinates {
-        let jd = JulianDate.julianDay(from: observerStore.observer.date)
-        return BodyFactory.body(for: bodyID).apparentEquatorial(jdUT: jd)
+    /// Full almanac-style readout for the selected body at the observer instant
+    /// and position. One computation, every quantity the app can supply.
+    var almanac: AlmanacQuantities {
+        AlmanacCalculator.compute(bodyID: bodyID, observer: observerStore.observer)
     }
 }

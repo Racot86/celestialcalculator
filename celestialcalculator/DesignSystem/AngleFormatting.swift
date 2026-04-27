@@ -37,6 +37,24 @@ enum AngleFormatting {
         return String(format: "%@%03d°%02d'%05.2f\"", sign, d, mi, s)
     }
 
+    /// Latitude as "DD°MM.M'N" or "…S" — degrees zero-padded to 2 digits.
+    static func latitudeCompact(_ degrees: Double) -> String {
+        let n = abs(degrees)
+        let d = Int(floor(n))
+        let m = (n - Double(d)) * 60.0
+        let hem = degrees >= 0 ? "N" : "S"
+        return String(format: "%02d°%04.1f'%@", d, m, hem)
+    }
+
+    /// Longitude as "DDD°MM.M'E" or "…W" — degrees zero-padded to 3 digits.
+    static func longitudeCompact(_ degrees: Double) -> String {
+        let n = abs(degrees)
+        let d = Int(floor(n))
+        let m = (n - Double(d)) * 60.0
+        let hem = degrees >= 0 ? "E" : "W"
+        return String(format: "%03d°%04.1f'%@", d, m, hem)
+    }
+
     static func cardinal(_ degrees: Double) -> String {
         let dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
                     "S","SSW","SW","WSW","W","WNW","NW","NNW"]

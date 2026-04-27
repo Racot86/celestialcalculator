@@ -1,38 +1,57 @@
 import SwiftUI
 
+enum RootTab: Hashable { case list, almanac, observer, compare }
+
 struct RootView: View {
     @State private var observerStore = ObserverStore()
-    @State private var detailVM: BodyDetailViewModel
     @State private var listVM: BodiesListViewModel
+    @State private var almanacVM: AlmanacViewModel
     @State private var compareVM: CompareViewModel
+    @State private var selection: RootTab = .list
 
     init() {
         let store = ObserverStore()
         _observerStore = State(initialValue: store)
-        _detailVM  = State(initialValue: BodyDetailViewModel(observerStore: store))
-        _listVM    = State(initialValue: BodiesListViewModel(observerStore: store))
-        _compareVM = State(initialValue: CompareViewModel(observerStore: store))
+        _listVM     = State(initialValue: BodiesListViewModel(observerStore: store))
+        _almanacVM  = State(initialValue: AlmanacViewModel())
+        _compareVM  = State(initialValue: CompareViewModel(observerStore: store))
     }
 
     var body: some View {
-        TabView {
-            BodyDetailView(viewModel: detailVM)
-                .tabItem { Label("Detail", systemImage: "scope") }
-
-            BodiesListView(viewModel: listVM)
-                .tabItem { Label("List", systemImage: "list.bullet.rectangle") }
-
-            ObserverInputView(store: observerStore)
-                .tabItem { Label("Observer", systemImage: "location.viewfinder") }
-
-            CompareView(viewModel: compareVM)
-                .tabItem { Label("Compare", systemImage: "checkmark.shield") }
+        VStack(spacing: 0) {
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            BrutalistTabBar(
+                selection: $selection,
+                items: [
+                    .init(id: .list,     title: "Bodies"),
+                    .init(id: .almanac,  title: "Almanac"),
+                    .init(id: .observer, title: "Observer"),
+                    .init(id: .compare,  title: "Compare")
+                ]
+            )
         }
-        .tint(BrutalistTheme.accent)
+        .background(BrutalistTheme.background.ignoresSafeArea())
         .onAppear {
-            detailVM.observerStore = observerStore
             listVM.observerStore = observerStore
             compareVM.observerStore = observerStore
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch selection {
+        case .list:
+            NavigationStack {
+                BodiesListView(viewModel: listVM)
+                    .navigationDestination(for: CelestialBodyID.self) { id in
+                        BodyDetailView(viewModel:
+                            BodyDetailViewModel(bodyID: id, observerStore: observerStore))
+                    }
+            }
+        case .almanac:  AlmanacView(viewModel: almanacVM)
+        case .observer: ObserverInputView(store: observerStore)
+        case .compare:  CompareView(viewModel: compareVM)
         }
     }
 }

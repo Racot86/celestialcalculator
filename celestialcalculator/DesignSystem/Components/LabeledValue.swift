@@ -11,7 +11,7 @@ struct LabeledValue: View {
     var body: some View {
         VStack(alignment: alignment, spacing: 2) {
             Text(label.uppercased())
-                .font(.brutalistMono(9))
+                .font(.brutalistTextBold(9))
                 .foregroundStyle(labelColor)
             Text(value)
                 .font(valueFont)

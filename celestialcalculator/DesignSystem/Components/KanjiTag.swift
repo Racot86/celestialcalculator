@@ -9,10 +9,10 @@ struct KanjiTag: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(text)
-                .font(.system(size: 11, weight: .heavy))
+                .font(.brutalistDecorative(13))
             Rectangle().fill(color).frame(width: 1, height: 14)
             Text(subtitle)
-                .font(.system(size: 8, weight: .heavy, design: .monospaced))
+                .font(.brutalistDecorative(9))
                 .kerning(0.6)
         }
         .padding(.horizontal, 6)

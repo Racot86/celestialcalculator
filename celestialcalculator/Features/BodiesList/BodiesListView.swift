@@ -8,17 +8,17 @@ struct BodiesListView: View {
                        title: "Nav Bodies",
                        subtitle: "TRUE BEARING (Zn) FOR ALL BODIES") {
             VStack(alignment: .leading, spacing: 8) {
-                Toggle(isOn: $viewModel.hideBelowHorizon) {
-                    Text("HIDE BELOW HORIZON")
-                        .font(.brutalistMono(11))
-                        .foregroundStyle(BrutalistTheme.foreground)
-                }
-                .tint(BrutalistTheme.accent)
+                TimeStrip(date: viewModel.observerStore.observer.date)
+                BrutalistToggle(isOn: $viewModel.hideBelowHorizon,
+                                label: "Hide below horizon")
 
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.rows) { row in
-                            BodyRowView(row: row)
+                            NavigationLink(value: row.bodyID) {
+                                BodyRowView(row: row)
+                            }
+                            .buttonStyle(.plain)
                             Rectangle()
                                 .fill(BrutalistTheme.foreground.opacity(0.15))
                                 .frame(height: 1)
@@ -27,6 +27,7 @@ struct BodiesListView: View {
                 }
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var serial: String {

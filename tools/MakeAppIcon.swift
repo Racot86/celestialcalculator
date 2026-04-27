@@ -38,7 +38,7 @@ guard let ctx = CGContext(data: nil, width: size, height: size,
     fputs("could not create context\n", stderr); exit(1)
 }
 
-// 1. Background gradient (top brighter, bottom darker)
+// 1. Background gradient (top brighter, bottom darker) — full bleed.
 let gradient = CGGradient(colorsSpace: cs,
                           colors: [charcoal2, charcoal] as CFArray,
                           locations: [0, 1])!
@@ -46,6 +46,15 @@ ctx.drawLinearGradient(gradient,
                        start: CGPoint(x: 0, y: s),
                        end: CGPoint(x: 0, y: 0),
                        options: [])
+
+// All artwork below occupies the central 70% of the canvas.
+// Apply a transform so we can keep the existing artwork coordinates while
+// shrinking everything to a 70% bounding square centered on the canvas.
+let artScale: CGFloat = 0.70
+let pad = (s * (1.0 - artScale)) / 2.0
+ctx.saveGState()
+ctx.translateBy(x: pad, y: pad)
+ctx.scaleBy(x: artScale, y: artScale)
 
 // 2. Faint horizon stripe in lower third
 ctx.setStrokeColor(bone)
@@ -147,6 +156,8 @@ NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
 zn.draw(at: NSPoint(x: 170, y: 170))
 NSGraphicsContext.restoreGraphicsState()
+
+ctx.restoreGState() // pop the 70% artwork transform
 
 // Save PNG
 guard let image = ctx.makeImage() else { fputs("no image\n", stderr); exit(1) }
