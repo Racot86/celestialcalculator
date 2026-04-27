@@ -6,7 +6,7 @@ struct CompareView: View {
     var body: some View {
         BrutalistPanel(serial: serial,
                        title: "USNO Compare",
-                       subtitle: "VISIBLE BODIES ONLY • TEST ONLY") {
+                       subtitle: "VISIBLE BODIES • TEST ONLY") {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Button {
@@ -20,7 +20,7 @@ struct CompareView: View {
                     }
                     .disabled(viewModel.isFetching)
                     Spacer()
-                    Text("Δ az/alt = app − USNO")
+                    Text("Δ = APP − USNO")
                         .font(.brutalistMono(9))
                         .foregroundStyle(BrutalistTheme.muted)
                 }
@@ -55,45 +55,82 @@ private struct CompareRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(row.displayName.uppercased())
-                    .font(.brutalistLabel(14))
+                    .font(.brutalistLabel(13))
                     .foregroundStyle(BrutalistTheme.foreground)
                 Spacer()
                 if let err = row.error {
-                    Text(err.prefix(40)).font(.brutalistMono(8))
+                    Text(err).font(.brutalistMono(8))
                         .foregroundStyle(BrutalistTheme.signal)
                 }
             }
-            HStack(alignment: .top, spacing: 12) {
-                column(label: "APP",
-                       az: AngleFormatting.bearing(row.appAzimuth),
-                       alt: AngleFormatting.altitude(row.appAltitude),
-                       color: BrutalistTheme.foreground)
-                column(label: "USNO",
-                       az: row.usno.map { AngleFormatting.bearing($0.azimuthDegrees) } ?? "—",
-                       alt: row.usno.map { AngleFormatting.altitude($0.altitudeDegrees) } ?? "—",
-                       color: BrutalistTheme.foreground)
-                column(label: "Δ",
-                       az: row.azimuthDelta.map { String(format: "%+.3f°", $0) } ?? "—",
-                       alt: row.altitudeDelta.map { String(format: "%+.3f°", $0) } ?? "—",
-                       color: deltaColor(row.azimuthDelta))
+            // Header row
+            HStack(spacing: 0) {
+                col("",     align: .leading)
+                col("APP",  align: .trailing)
+                col("USNO", align: .trailing)
+                col("Δ",    align: .trailing)
             }
+            .font(.brutalistMono(8))
+            .foregroundStyle(BrutalistTheme.muted)
+
+            paramRow(name: "Zn",  app: row.appZn,  usno: row.usno?.azimuthDegrees,  delta: row.znDelta,  format: .bearing)
+            paramRow(name: "Hc",  app: row.appHc,  usno: row.usno?.altitudeDegrees, delta: row.hcDelta,  format: .signed)
+            paramRow(name: "GHA", app: row.appGHA, usno: row.usno?.ghaDegrees,      delta: row.ghaDelta, format: .bearing)
+            paramRow(name: "Dec", app: row.appDec, usno: row.usno?.decDegrees,      delta: row.decDelta, format: .signed)
         }
         .padding(.vertical, 8)
     }
 
-    private func column(label: String, az: String, alt: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label).font(.brutalistMono(8)).foregroundStyle(BrutalistTheme.muted)
-            Text(az).font(.brutalistMonoBold(12)).foregroundStyle(color)
-            Text(alt).font(.brutalistMono(11)).foregroundStyle(color.opacity(0.8))
-        }.frame(maxWidth: .infinity, alignment: .leading)
+    private enum Fmt { case bearing, signed }
+
+    @ViewBuilder
+    private func paramRow(name: String,
+                          app: Double,
+                          usno: Double?,
+                          delta: Double?,
+                          format: Fmt) -> some View {
+        HStack(spacing: 0) {
+            Text(name).font(.brutalistMonoBold(11)).foregroundStyle(BrutalistTheme.muted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(formatted(app, format: format))
+                .font(.brutalistMono(11))
+                .foregroundStyle(BrutalistTheme.foreground)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            Text(usno.map { formatted($0, format: format) } ?? "—")
+                .font(.brutalistMono(11))
+                .foregroundStyle(BrutalistTheme.foreground)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            Text(deltaString(delta))
+                .font(.brutalistMonoBold(11))
+                .foregroundStyle(deltaColor(delta))
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+    }
+
+    private func formatted(_ d: Double, format: Fmt) -> String {
+        switch format {
+        case .bearing: return AngleFormatting.bearing(d)
+        case .signed:  return AngleFormatting.altitude(d)
+        }
+    }
+
+    /// Delta as ± arc-minutes (1 minute = 1/60 deg).
+    private func deltaString(_ d: Double?) -> String {
+        guard let d else { return "—" }
+        let mins = d * 60.0
+        return String(format: "%+.2f'", mins)
     }
 
     private func deltaColor(_ d: Double?) -> Color {
         guard let d else { return BrutalistTheme.muted }
-        let mag = abs(d)
-        if mag < 0.05 { return BrutalistTheme.foreground }      // ≤ 3'
-        if mag < 0.5  { return BrutalistTheme.accent }           // ≤ 30'
+        let mins = abs(d) * 60.0
+        if mins <= 1.0  { return BrutalistTheme.foreground }
+        if mins <= 6.0  { return BrutalistTheme.accent }
         return BrutalistTheme.signal
+    }
+
+    private func col(_ label: String, align: HorizontalAlignment) -> some View {
+        Text(label).frame(maxWidth: .infinity,
+                          alignment: align == .leading ? .leading : .trailing)
     }
 }

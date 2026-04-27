@@ -1,54 +1,64 @@
 import Foundation
 
-/// Planetary positions via JPL/Standish "Keplerian Elements for Approximate Positions
-/// of the Major Planets" (1800 AD – 2050 AD set).
-/// Reference: https://ssd.jpl.nasa.gov/planets/approx_pos.html
-/// Accuracy: sub-arcminute for Mercury–Mars, a few arcminutes for outer planets.
+/// Planetary positions:
+///   • Earth, Jupiter, Saturn — full VSOP87D heliocentric series (sub-arcsecond).
+///   • Venus, Mars              — JPL/Standish 1800–2050 Keplerian set
+///                                (already < 1' for these inner planets).
+/// VSOP87D output is heliocentric ecliptic-of-date, so no extra precession step.
 struct Planet: CelestialBody {
     let kind: PlanetKind
 
     func apparentEquatorial(jdUT: Double) -> EquatorialCoordinates {
         let jde = JulianDate.jde(from: jdUT)
 
-        // Heliocentric ecliptic rectangular coordinates (J2000) of Earth and target planet.
-        let earth = heliocentricJ2000(elements: .earth, jde: jde)
-        var planet = heliocentricJ2000(elements: elements(for: kind), jde: jde)
+        let earthHelio = vsopSphericalToRect(VSOP87Body.earth(jde: jde))
+        var planetHelio = heliocentricOfDate(jde: jde)
 
-        // Light-time correction: iterate ~2 times.
-        var dx = planet.x - earth.x, dy = planet.y - earth.y, dz = planet.z - earth.z
+        // Light-time iteration (~2 passes is plenty).
+        var dx = planetHelio.x - earthHelio.x
+        var dy = planetHelio.y - earthHelio.y
+        var dz = planetHelio.z - earthHelio.z
         var dist = sqrt(dx*dx + dy*dy + dz*dz)
-        let c_AU_per_day = 173.144632674
+        let cAUperDay = 173.144632674
         for _ in 0..<2 {
-            let tau = dist / c_AU_per_day
-            planet = heliocentricJ2000(elements: elements(for: kind), jde: jde - tau)
-            dx = planet.x - earth.x; dy = planet.y - earth.y; dz = planet.z - earth.z
+            let tau = dist / cAUperDay
+            planetHelio = heliocentricOfDate(jde: jde - tau)
+            dx = planetHelio.x - earthHelio.x
+            dy = planetHelio.y - earthHelio.y
+            dz = planetHelio.z - earthHelio.z
             dist = sqrt(dx*dx + dy*dy + dz*dz)
         }
 
-        // Convert geocentric J2000 ecliptic rectangular → ecliptic of-date by precessing
-        // longitude. For simplicity we treat coordinates as if of-date (small bias, < arcminute
-        // for the ~26-yr precession over this era is acceptable for navigational azimuth).
+        // Geocentric ecliptic of date → apparent (apply nutation in longitude).
         let lambda = AngleMath.normalizeRadians(atan2(dy, dx))
         let beta = atan2(dz, sqrt(dx*dx + dy*dy))
-
-        // Apply precession from J2000 to date (longitude only) — Meeus 21 simplified
-        let t = JulianDate.centuriesSinceJ2000(jd: jde)
-        let precessLon = AngleMath.degToRad((1.396971278 * t + 0.0003086 * t*t)) // approx general precession in long
-        let lambdaDate = lambda + precessLon
-
-        // Apparent: + nutation in longitude
         let dpsi = Nutation.nutationInLongitude(jde: jde)
-        let lambdaApp = lambdaDate + dpsi
+        let lambdaApp = lambda + dpsi
         let eps = Obliquity.trueObliquity(jde: jde)
-        var eq = EclipticToEquatorial.convert(longitudeRad: lambdaApp, latitudeRad: beta, obliquityRad: eps)
+        var eq = EclipticToEquatorial.convert(longitudeRad: lambdaApp,
+                                              latitudeRad: beta,
+                                              obliquityRad: eps)
         eq.distanceAU = dist
         return eq
     }
 
-    // MARK: - Keplerian elements
+    /// Heliocentric ecliptic-of-date rectangular for the body, AU.
+    private func heliocentricOfDate(jde: Double) -> (x: Double, y: Double, z: Double) {
+        switch kind {
+        case .jupiter:
+            return vsopSphericalToRect(VSOP87Body.jupiter(jde: jde))
+        case .saturn:
+            return vsopSphericalToRect(VSOP87Body.saturn(jde: jde))
+        case .venus:
+            return standishHelioOfDate(elements: .venus, jde: jde)
+        case .mars:
+            return standishHelioOfDate(elements: .mars, jde: jde)
+        }
+    }
+
+    // MARK: - Standish Keplerian (Venus, Mars)
 
     private struct Elements {
-        // a (AU), e, I (deg), L (deg), longPeri ϖ (deg), longNode Ω (deg)
         let a0: Double, aDot: Double
         let e0: Double, eDot: Double
         let I0: Double, IDot: Double
@@ -56,14 +66,6 @@ struct Planet: CelestialBody {
         let wbar0: Double, wbarDot: Double
         let omg0: Double, omgDot: Double
 
-        static let earth = Elements(
-            a0: 1.00000261, aDot: 0.00000562,
-            e0: 0.01671123, eDot: -0.00004392,
-            I0: -0.00001531, IDot: -0.01294668,
-            L0: 100.46457166, LDot: 35999.37244981,
-            wbar0: 102.93768193, wbarDot: 0.32327364,
-            omg0: 0.0, omgDot: 0.0
-        )
         static let venus = Elements(
             a0: 0.72333566, aDot: 0.00000390,
             e0: 0.00677672, eDot: -0.00004107,
@@ -80,35 +82,10 @@ struct Planet: CelestialBody {
             wbar0: -23.94362959, wbarDot: 0.44441088,
             omg0: 49.55953891, omgDot: -0.29257343
         )
-        static let jupiter = Elements(
-            a0: 5.20288700, aDot: -0.00011607,
-            e0: 0.04838624, eDot: -0.00013253,
-            I0: 1.30439695, IDot: -0.00183714,
-            L0: 34.39644051, LDot: 3034.74612775,
-            wbar0: 14.72847983, wbarDot: 0.21252668,
-            omg0: 100.47390909, omgDot: 0.20469106
-        )
-        static let saturn = Elements(
-            a0: 9.53667594, aDot: -0.00125060,
-            e0: 0.05386179, eDot: -0.00050991,
-            I0: 2.48599187, IDot: 0.00193609,
-            L0: 49.95424423, LDot: 1222.49362201,
-            wbar0: 92.59887831, wbarDot: -0.41897216,
-            omg0: 113.66242448, omgDot: -0.28867794
-        )
     }
 
-    private func elements(for k: PlanetKind) -> Elements {
-        switch k {
-        case .venus: return .venus
-        case .mars: return .mars
-        case .jupiter: return .jupiter
-        case .saturn: return .saturn
-        }
-    }
-
-    /// Heliocentric J2000 ecliptic rectangular coordinates (AU).
-    private func heliocentricJ2000(elements e: Elements, jde: Double) -> (x: Double, y: Double, z: Double) {
+    /// Standish heliocentric position, then precess J2000 → of-date longitude.
+    private func standishHelioOfDate(elements e: Elements, jde: Double) -> (x: Double, y: Double, z: Double) {
         let T = (jde - JulianDate.j2000) / 36525.0
         let a = e.a0 + e.aDot * T
         let ecc = e.e0 + e.eDot * T
@@ -123,7 +100,6 @@ struct Planet: CelestialBody {
         let Mr = AngleMath.degToRad(M)
         let argPeri = AngleMath.degToRad(wbar) - omega
 
-        // Solve Kepler's equation E - e sin E = M (radians, e dimensionless)
         var E = Mr + ecc * sin(Mr)
         for _ in 0..<10 {
             let dE = (E - ecc * sin(E) - Mr) / (1 - ecc * cos(E))
@@ -131,17 +107,30 @@ struct Planet: CelestialBody {
             if abs(dE) < 1e-10 { break }
         }
 
-        // Heliocentric coordinates in orbital plane
         let xPrime = a * (cos(E) - ecc)
         let yPrime = a * sqrt(1 - ecc*ecc) * sin(E)
 
-        // Rotate to J2000 ecliptic
         let cw = cos(argPeri), sw = sin(argPeri)
         let cO = cos(omega),   sO = sin(omega)
         let cI = cos(I),       sI = sin(I)
-        let xEc = (cw*cO - sw*sO*cI)*xPrime + (-sw*cO - cw*sO*cI)*yPrime
-        let yEc = (cw*sO + sw*cO*cI)*xPrime + (-sw*sO + cw*cO*cI)*yPrime
-        let zEc = (sw*sI)*xPrime + (cw*sI)*yPrime
-        return (xEc, yEc, zEc)
+        var x = (cw*cO - sw*sO*cI)*xPrime + (-sw*cO - cw*sO*cI)*yPrime
+        var y = (cw*sO + sw*cO*cI)*xPrime + (-sw*sO + cw*cO*cI)*yPrime
+        let z = (sw*sI)*xPrime + (cw*sI)*yPrime
+
+        // Precess J2000 ecliptic → ecliptic of date by rotating about Z by general
+        // precession in longitude. (Earth uses VSOP87 directly so doesn't need this.)
+        let precessLon = AngleMath.degToRad(1.396971278 * T + 0.0003086 * T * T)
+        let cp = cos(precessLon), sp = sin(precessLon)
+        let xR = x * cp - y * sp
+        let yR = x * sp + y * cp
+        x = xR; y = yR
+        return (x, y, z)
     }
+}
+
+private func vsopSphericalToRect(_ p: (lon: Double, lat: Double, r: Double)) -> (x: Double, y: Double, z: Double) {
+    let cb = cos(p.lat)
+    return (p.r * cb * cos(p.lon),
+            p.r * cb * sin(p.lon),
+            p.r * sin(p.lat))
 }

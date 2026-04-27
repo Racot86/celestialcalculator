@@ -5,23 +5,27 @@ struct CompareRow: Identifiable {
     let id: String
     let bodyID: CelestialBodyID
     let displayName: String
-    let appAzimuth: Double
-    let appAltitude: Double
+
+    /// App-side calculated values.
+    let appZn: Double          // true azimuth, deg
+    let appHc: Double          // computed altitude, deg
+    let appGHA: Double         // Greenwich Hour Angle, deg
+    let appDec: Double         // declination, deg
+
     var usno: USNOResult?
     var error: String?
 
-    var azimuthDelta: Double? {
-        guard let u = usno else { return nil }
-        var d = appAzimuth - u.azimuthDegrees
-        if d > 180 { d -= 360 }
-        if d < -180 { d += 360 }
+    func delta(_ kp: KeyPath<CompareRow, Double>, _ usnoVal: Double?) -> Double? {
+        guard let u = usnoVal else { return nil }
+        var d = self[keyPath: kp] - u
+        if abs(d) > 180 { d -= d.sign == .plus ? 360 : -360 }
         return d
     }
 
-    var altitudeDelta: Double? {
-        guard let u = usno else { return nil }
-        return appAltitude - u.altitudeDegrees
-    }
+    var znDelta:  Double? { delta(\.appZn, usno?.azimuthDegrees) }
+    var hcDelta:  Double? { delta(\.appHc, usno?.altitudeDegrees) }
+    var ghaDelta: Double? { delta(\.appGHA, usno?.ghaDegrees) }
+    var decDelta: Double? { delta(\.appDec, usno?.decDegrees) }
 }
 
 @Observable
@@ -54,13 +58,17 @@ final class CompareViewModel {
     /// we filter to the same set for fair comparison.
     private static func buildLocalRows(_ observer: Observer) -> [CompareRow] {
         comparableIDs.compactMap { id in
-            let h = BodyFactory.body(for: id).horizontalCoordinates(for: observer)
-            guard h.altitudeDegrees > 0 else { return nil }
-            return CompareRow(id: id.id,
-                              bodyID: id,
-                              displayName: id.displayName,
-                              appAzimuth: h.azimuthDegrees,
-                              appAltitude: h.altitudeDegrees)
+            let q = AlmanacCalculator.compute(bodyID: id, observer: observer)
+            guard q.horizontalTrue.altitudeDegrees > 0 else { return nil }
+            return CompareRow(
+                id: id.id,
+                bodyID: id,
+                displayName: id.displayName,
+                appZn: q.horizontalTrue.azimuthDegrees,
+                appHc: q.horizontalTrue.altitudeDegrees,
+                appGHA: q.ghaDegrees,
+                appDec: AngleMath.radToDeg(q.equatorial.declination)
+            )
         }
     }
 

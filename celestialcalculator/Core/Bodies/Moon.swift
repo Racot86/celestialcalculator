@@ -132,21 +132,29 @@ struct Moon: CelestialBody {
         ]
 
         var sumL = 0.0, sumR = 0.0, sumB = 0.0
-        for t in lrTerms {
-            let arg = t.d*Dr + t.m*Mr + t.mp*Mpr + t.f*Fr
+        for term in lrTerms {
+            let arg = term.d*Dr + term.m*Mr + term.mp*Mpr + term.f*Fr
             var ee = 1.0
-            if abs(t.m) == 1 { ee = E } else if abs(t.m) == 2 { ee = E*E }
-            sumL += ee * t.l * sin(arg)
-            sumR += ee * t.r * cos(arg)
+            if abs(term.m) == 1 { ee = E } else if abs(term.m) == 2 { ee = E*E }
+            sumL += ee * term.l * sin(arg)
+            sumR += ee * term.r * cos(arg)
         }
-        for t in bTerms {
-            let arg = t.d*Dr + t.m*Mr + t.mp*Mpr + t.f*Fr
+        for term in bTerms {
+            let arg = term.d*Dr + term.m*Mr + term.mp*Mpr + term.f*Fr
             var ee = 1.0
-            if abs(t.m) == 1 { ee = E } else if abs(t.m) == 2 { ee = E*E }
-            sumB += ee * t.b * sin(arg)
+            if abs(term.m) == 1 { ee = E } else if abs(term.m) == 2 { ee = E*E }
+            sumB += ee * term.b * sin(arg)
         }
 
-        // Additive terms (planetary perturbations) — small; skip for nav accuracy.
+        // Additive (planetary perturbation) terms — Meeus 47, after the main series.
+        let A1 = AngleMath.degToRad(AngleMath.normalizeDegrees(119.75 + 131.849 * t))
+        let A2 = AngleMath.degToRad(AngleMath.normalizeDegrees(53.09 + 479264.290 * t))
+        let A3 = AngleMath.degToRad(AngleMath.normalizeDegrees(313.45 + 481266.484 * t))
+        sumL += 3958 * sin(A1) + 1962 * sin(Lp * d2r - Fr) + 318 * sin(A2)
+        sumB += -2235 * sin(Lp * d2r) + 382 * sin(A3)
+              + 175 * sin(A1 - Fr) + 175 * sin(A1 + Fr)
+              + 127 * sin(Lp * d2r - Mpr) - 115 * sin(Lp * d2r + Mpr)
+
         let lambdaDeg = Lp + sumL / 1_000_000.0
         let betaDeg = sumB / 1_000_000.0
         let distanceKm = 385000.56 + sumR / 1000.0

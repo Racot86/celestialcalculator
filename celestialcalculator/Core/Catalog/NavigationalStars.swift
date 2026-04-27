@@ -66,7 +66,7 @@ enum NavigationalStars {
         .init(name: "Rasalhague",  bayer: "α Oph",  magnitude: 2.08, raJ2000Deg: 263.7335, decJ2000Deg: 12.5601,  pmRAArcsecPerYear: 0.110,  pmDecArcsecPerYear: -0.222),
         .init(name: "Regulus",     bayer: "α Leo",  magnitude: 1.36, raJ2000Deg: 152.0930, decJ2000Deg: 11.9672,  pmRAArcsecPerYear: -0.249, pmDecArcsecPerYear: 0.005),
         .init(name: "Rigel",       bayer: "β Ori",  magnitude: 0.18, raJ2000Deg: 78.6345,  decJ2000Deg: -8.2017,  pmRAArcsecPerYear: 0.002,  pmDecArcsecPerYear: -0.001),
-        .init(name: "Rigil Kent",  bayer: "α Cen",  magnitude: -0.01, raJ2000Deg: 219.9202, decJ2000Deg: -60.8340, pmRAArcsecPerYear: -3.679, pmDecArcsecPerYear: 0.474),
+        .init(name: "Rigil Kent",  bayer: "α Cen",  magnitude: -0.01, raJ2000Deg: 219.9020833, decJ2000Deg: -60.8339722, pmRAArcsecPerYear: -3.608, pmDecArcsecPerYear: 0.703),
         .init(name: "Sabik",       bayer: "η Oph",  magnitude: 2.43, raJ2000Deg: 257.5946, decJ2000Deg: -15.7249, pmRAArcsecPerYear: 0.041,  pmDecArcsecPerYear: 0.099),
         .init(name: "Schedar",     bayer: "α Cas",  magnitude: 2.24, raJ2000Deg: 10.1268,  decJ2000Deg: 56.5374,  pmRAArcsecPerYear: 0.051,  pmDecArcsecPerYear: -0.032),
         .init(name: "Shaula",      bayer: "λ Sco",  magnitude: 1.62, raJ2000Deg: 263.4022, decJ2000Deg: -37.1038, pmRAArcsecPerYear: -0.009, pmDecArcsecPerYear: -0.030),
