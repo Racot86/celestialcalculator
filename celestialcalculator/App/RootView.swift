@@ -1,22 +1,26 @@
 import SwiftUI
 
-enum RootTab: Hashable { case list, almanac, chart, observer, compare }
+enum RootTab: Hashable {
+    case list, almanac, increments, chart, observer, compare
+}
 
 struct RootView: View {
     @State private var observerStore = ObserverStore()
     @State private var listVM: BodiesListViewModel
     @State private var almanacVM: AlmanacViewModel
+    @State private var incrementsVM: IncrementsViewModel
     @State private var chartVM: ChartViewModel
     @State private var compareVM: CompareViewModel
     @State private var selection: RootTab = .list
 
     init() {
         let store = ObserverStore()
-        _observerStore = State(initialValue: store)
-        _listVM     = State(initialValue: BodiesListViewModel(observerStore: store))
-        _almanacVM  = State(initialValue: AlmanacViewModel())
-        _chartVM    = State(initialValue: ChartViewModel(observerStore: store))
-        _compareVM  = State(initialValue: CompareViewModel(observerStore: store))
+        _observerStore  = State(initialValue: store)
+        _listVM         = State(initialValue: BodiesListViewModel(observerStore: store))
+        _almanacVM      = State(initialValue: AlmanacViewModel())
+        _incrementsVM   = State(initialValue: IncrementsViewModel())
+        _chartVM        = State(initialValue: ChartViewModel(observerStore: store))
+        _compareVM      = State(initialValue: CompareViewModel(observerStore: store))
     }
 
     var body: some View {
@@ -26,11 +30,12 @@ struct RootView: View {
             BrutalistTabBar(
                 selection: $selection,
                 items: [
-                    .init(id: .list,     title: "Bodies"),
-                    .init(id: .almanac,  title: "Almanac"),
-                    .init(id: .chart,    title: "Chart"),
-                    .init(id: .observer, title: "Observer"),
-                    .init(id: .compare,  title: "Compare")
+                    .init(id: .list,       title: "Bodies"),
+                    .init(id: .almanac,    title: "Almanac"),
+                    .init(id: .increments, title: "Incr"),
+                    .init(id: .chart,      title: "Chart"),
+                    .init(id: .observer,   title: "Observer"),
+                    .init(id: .compare,    title: "Compare")
                 ]
             )
         }
@@ -53,17 +58,11 @@ struct RootView: View {
                             BodyDetailViewModel(bodyID: id, observerStore: observerStore))
                     }
             }
-        case .almanac:  AlmanacView(viewModel: almanacVM)
-        case .chart:
-            NavigationStack {
-                ChartView(viewModel: chartVM)
-                    .navigationDestination(for: CelestialBodyID.self) { id in
-                        BodyDetailView(viewModel:
-                            BodyDetailViewModel(bodyID: id, observerStore: observerStore))
-                    }
-            }
-        case .observer: ObserverInputView(store: observerStore)
-        case .compare:  CompareView(viewModel: compareVM)
+        case .almanac:    AlmanacView(viewModel: almanacVM)
+        case .increments: IncrementsView(viewModel: incrementsVM)
+        case .chart:      ChartView(viewModel: chartVM)
+        case .observer:   ObserverInputView(store: observerStore)
+        case .compare:    CompareView(viewModel: compareVM)
         }
     }
 }
