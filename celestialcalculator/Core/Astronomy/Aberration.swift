@@ -1,7 +1,32 @@
 import Foundation
 
-/// Annual aberration of star coordinates (Meeus 23.2). Returns (Δα, Δδ) in radians.
+/// Annual aberration corrections — Meeus chapter 23.
 enum Aberration {
+    /// Apply annual aberration to ecliptic coordinates of a Solar-System body.
+    /// Returns (Δλ, Δβ) in radians. Adds ~20.5″ along the apex-of-Earth's-motion.
+    static func annualEclipticCorrection(longitudeRad lambda: Double,
+                                         latitudeRad beta: Double,
+                                         jde: Double) -> (dLambda: Double, dBeta: Double) {
+        let t = JulianDate.centuriesSinceJ2000(jd: jde)
+        let kappa = AngleMath.degToRad(20.49552 / 3600.0)
+
+        // Sun's true geometric longitude (low-precision, sufficient for κ-magnitude term).
+        let L0 = AngleMath.normalizeDegrees(280.46646 + 36000.76983 * t)
+        let Mr = AngleMath.degToRad(AngleMath.normalizeDegrees(357.52911 + 35999.05029 * t))
+        let C = (1.914602 - 0.004817 * t) * sin(Mr)
+              + (0.019993 - 0.000101 * t) * sin(2 * Mr)
+              + 0.000289 * sin(3 * Mr)
+        let lambdaSun = AngleMath.degToRad(L0 + C)
+
+        let e = 0.016708634 - 0.000042037 * t - 0.0000001267 * t * t
+        // Longitude of perihelion of Earth's orbit
+        let pi = AngleMath.degToRad(102.93768193 + 1.71946 * t / 100.0)
+
+        let dl = (-kappa * cos(lambdaSun - lambda) + e * kappa * cos(pi - lambda)) / cos(beta)
+        let db = -kappa * sin(beta) * (sin(lambdaSun - lambda) - e * sin(pi - lambda))
+        return (dl, db)
+    }
+
     static func annualAberration(raRad ra: Double, decRad dec: Double, jde: Double) -> (Double, Double) {
         let t = JulianDate.centuriesSinceJ2000(jd: jde)
         let kappa = AngleMath.degToRad(20.49552 / 3600.0) // constant of aberration

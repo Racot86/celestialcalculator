@@ -13,11 +13,17 @@ import Foundation
 ///   • Outer planets    : Zn/Hc within 8'    (0.133°)
 struct USNOComparisonTests {
     private static let observers: [(label: String, date: String, lat: Double, lon: Double)] = [
+        // Modern era — primary navigation use
         ("NewYork-2024-04-27 12:00", "2024-04-27T12:00:00Z", 40.7128, -74.0060),
         ("Sydney-2024-07-15 22:00",  "2024-07-15T22:00:00Z", -33.8688, 151.2093),
         ("Cape-2024-10-01 04:00",    "2024-10-01T04:00:00Z", -33.9249,  18.4241),
         ("Reykjavik-2024-01-15 18:00","2024-01-15T18:00:00Z", 64.1466, -21.9426),
-        ("Hawaii-2025-06-21 08:30",  "2025-06-21T08:30:00Z",  19.8968, -155.5828)
+        ("Hawaii-2025-06-21 08:30",  "2025-06-21T08:30:00Z",  19.8968, -155.5828),
+        // Long-term validity probes — VSOP87D + IAU 2006 should hold.
+        // USNO API only supports up to ~2050, so future-far cases live in the
+        // dedicated cross-check below.
+        ("Singapore-2050-09-21 03:00","2050-09-21T03:00:00Z",   1.3521, 103.8198),
+        ("London-2000-06-21 06:00",  "2000-06-21T06:00:00Z",  51.5074,  -0.1278)
     ]
 
     @Test func compareAgainstUSNO_multiDataset() async throws {
@@ -87,9 +93,11 @@ struct USNOComparisonTests {
         let zn: Double; let hc: Double; let gha: Double; let dec: Double
     }
 
-    /// All deltas must stay under 1 arc-minute (0.0167°). Verified on 5 datasets.
+    /// True azimuth (Zn) — the nav-critical reading — is held to 0.1' (= 6″)
+    /// across every body, every dataset. The supporting equatorial fields are
+    /// held to 0.3' to absorb the small extra slack at the 2050 long-term probe.
     private static func tolerance(for id: CelestialBodyID) -> Tol {
-        return Tol(zn: 0.0167, hc: 0.0167, gha: 0.0167, dec: 0.0167)
+        return Tol(zn: 0.002, hc: 0.005, gha: 0.005, dec: 0.005)
     }
 
     private static func wrapAngle(_ d: Double) -> Double {
@@ -100,4 +108,29 @@ struct USNOComparisonTests {
     }
 
     private func wrapAngle(_ d: Double) -> Double { Self.wrapAngle(d) }
+
+    /// Offline sanity test for far-future dates the USNO API refuses to compute.
+    /// The check is internal: every body must produce a finite, normalized
+    /// azimuth and a sensible altitude, with no NaN or runaway values.
+    @Test func farFutureSanity() {
+        let iso = ISO8601DateFormatter()
+        let cases: [(String, String, Double, Double)] = [
+            ("Tokyo-2080",        "2080-12-15T07:00:00Z", 35.6762, 139.6503),
+            ("Tokyo-2100",        "2100-03-20T21:00:00Z", 35.6762, 139.6503),
+            ("Reykjavik-2200",    "2200-06-21T06:00:00Z", 64.1466,  -21.9426)
+        ]
+        for (label, dateStr, lat, lon) in cases {
+            guard let date = iso.date(from: dateStr) else { continue }
+            let observer = Observer(date: date, latitude: lat, longitude: lon)
+            for id in CompareViewModel.comparableIDs {
+                let q = AlmanacCalculator.compute(bodyID: id, observer: observer)
+                let az = q.horizontalTrue.azimuthDegrees
+                let alt = q.horizontalTrue.altitudeDegrees
+                #expect(az.isFinite, "\(label) \(id.displayName) az not finite")
+                #expect(alt.isFinite, "\(label) \(id.displayName) alt not finite")
+                #expect((-1e-9...360 + 1e-9).contains(az))
+                #expect((-90...90).contains(alt))
+            }
+        }
+    }
 }

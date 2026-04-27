@@ -54,6 +54,9 @@ private struct CompareRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
+                Text(row.bodyID.symbol)
+                    .font(.system(size: 18))
+                    .foregroundStyle(BrutalistTheme.accent)
                 Text(row.displayName.uppercased())
                     .font(.brutalistLabel(13))
                     .foregroundStyle(BrutalistTheme.foreground)

@@ -5,6 +5,10 @@ struct BodyRowView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
+            Text(row.bodyID.symbol)
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(BrutalistTheme.accent)
+                .frame(width: 30, alignment: .center)
             VStack(alignment: .leading, spacing: 1) {
                 Text(row.displayName.uppercased())
                     .font(.brutalistLabel(13))
@@ -15,7 +19,7 @@ struct BodyRowView: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 1) {
-                Text(AngleFormatting.bearing(row.azimuthDegrees))
+                Text(String(format: "%05.1f°", normalizedAz))
                     .font(.brutalistMonoBold(15))
                     .foregroundStyle(isAboveHorizon ? BrutalistTheme.accent : BrutalistTheme.muted)
                 Text("\(AngleFormatting.cardinal(row.azimuthDegrees)) • alt \(AngleFormatting.altitude(row.altitudeDegrees))")
@@ -28,4 +32,9 @@ struct BodyRowView: View {
     }
 
     private var isAboveHorizon: Bool { row.altitudeDegrees > 0 }
+
+    private var normalizedAz: Double {
+        let n = row.azimuthDegrees.truncatingRemainder(dividingBy: 360.0)
+        return n < 0 ? n + 360.0 : n
+    }
 }

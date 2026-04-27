@@ -6,7 +6,7 @@ struct BodyDetailView: View {
 
     var body: some View {
         BrutalistPanel(serial: serial,
-                       title: viewModel.bodyID.displayName,
+                       title: viewModel.bodyID.displayWithSymbol,
                        subtitle: "\(viewModel.bodyID.classification) • TRUE BEARING (Zn)") {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {

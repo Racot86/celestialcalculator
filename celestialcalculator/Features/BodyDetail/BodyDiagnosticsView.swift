@@ -11,7 +11,7 @@ struct BodyDiagnosticsView: View {
         let q = AlmanacCalculator.compute(bodyID: bodyID, observer: observer)
         return BrutalistPanel(serial: String(format: "JD %.5f", q.jdUT),
                               title: "Almanac Data",
-                              subtitle: "USNO COMPARE • \(bodyID.displayName.uppercased())") {
+                              subtitle: "USNO COMPARE • \(bodyID.symbol) \(bodyID.displayName.uppercased())") {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     group(title: "TIME") {

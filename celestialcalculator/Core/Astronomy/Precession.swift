@@ -1,13 +1,33 @@
 import Foundation
 
-/// IAU 1976 precession (Meeus 21). Inputs and outputs in radians.
+/// IAU 2006 precession (Capitaine, Wallace, Chapront 2003). Ecliptic-rotation
+/// formulation using ζ_A, z_A, θ_A in arcseconds (T = TDB centuries from J2000).
+/// Replaces IAU 1976. Inputs and outputs in radians.
 enum Precession {
     static func precessJ2000ToDate(raRad alpha0: Double, decRad delta0: Double, jde: Double) -> (Double, Double) {
         let t = JulianDate.centuriesSinceJ2000(jd: jde)
-        // Coefficients in arcseconds
-        let zeta = AngleMath.degToRad((2306.2181 * t + 0.30188 * t*t + 0.017998 * t*t*t) / 3600.0)
-        let z    = AngleMath.degToRad((2306.2181 * t + 1.09468 * t*t + 0.018203 * t*t*t) / 3600.0)
-        let theta = AngleMath.degToRad((2004.3109 * t - 0.42665 * t*t - 0.041833 * t*t*t) / 3600.0)
+        // Coefficients in arcseconds (Capitaine et al. 2003, IAU 2006)
+        let zetaArc =     2.650545
+                      + 2306.083227 * t
+                      +    0.2988499 * t*t
+                      +    0.01801828 * t*t*t
+                      -    5.971e-6   * t*t*t*t
+                      -    3.173e-7   * t*t*t*t*t
+        let zArc    =    -2.650545
+                      + 2306.077181 * t
+                      +    1.0927348 * t*t
+                      +    0.01826837 * t*t*t
+                      -   28.596e-6   * t*t*t*t
+                      -    2.904e-7   * t*t*t*t*t
+        let thetaArc = 2004.191903 * t
+                      -    0.4294934 * t*t
+                      -    0.04182264 * t*t*t
+                      -    7.089e-6   * t*t*t*t
+                      -    1.274e-7   * t*t*t*t*t
+
+        let zeta = AngleMath.degToRad(zetaArc / 3600.0)
+        let z    = AngleMath.degToRad(zArc / 3600.0)
+        let theta = AngleMath.degToRad(thetaArc / 3600.0)
 
         let A = cos(delta0) * sin(alpha0 + zeta)
         let B = cos(theta) * cos(delta0) * cos(alpha0 + zeta) - sin(theta) * sin(delta0)

@@ -13,7 +13,7 @@ struct BodyPickerView: View {
     var body: some View {
         Picker("Body", selection: $selection) {
             ForEach(Self.allIDs, id: \.id) { id in
-                Text(id.displayName).tag(id)
+                Text(id.displayWithSymbol).tag(id)
             }
         }
         .pickerStyle(.menu)
